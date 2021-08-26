@@ -187,6 +187,10 @@ def collate(
         remote_backend_file = os.path.join(
             remote, "backend", batch, plate, plate + ".sqlite"
         )
+        remote_aggregated_file = os.path.join(
+                remote, "backend", batch, plate, plate + ".csv"
+            )
+
         cp_cmd = ["aws", "s3", "cp", remote_backend_file, backend_file]
         print(f"Downloading SQLite files from {remote_backend_file} to {backend_file}")
         run_check_errors(cp_cmd)
