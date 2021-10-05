@@ -264,11 +264,11 @@ if __name__ == "__main__":
         help="Whether or not to overwrite an sqlite that exists in the temporary directory if it already exists",
     )
     parser.add_argument(
-        "--add-image-features",
+        "--dont-add-image-features",
         dest="add_image_features",
-        action="store_true",
+        action="store_false",
         default=True,
-        help="Whether or not to oaadd the image features to the profiles",
+        help="Whether or not to add the image features to the profiles",
     )
 
     args = parser.parse_args()
