@@ -31,6 +31,7 @@ def collate(
     aggregate_only=False,
     temp="/tmp",
     overwrite=False,
+    add_image_features=True
 ):
     """Collate the CellProfiler-created CSVs into a single SQLite file by calling cytominer-database
 
@@ -58,6 +59,8 @@ def collate(
         The temporary directory to be used by cytominer-databases for output
     overwrite: bool, optional, default False
         Whether or not to overwrite an sqlite that exists in the temporary directory if it already exists
+    add_image_features: bool, optional, default True
+        Whether or not to add the image features to the profiles
     """
 
     # Set up directories (these need to be abspaths to keep from confusing makedirs later)
@@ -195,7 +198,7 @@ def collate(
         print(f"Downloading SQLite files from {remote_backend_file} to {backend_file}")
         run_check_errors(cp_cmd)
 
-    database = SingleCells("sqlite:///" + backend_file, aggregation_operation="mean")
+    database = SingleCells("sqlite:///" + backend_file, aggregation_operation="mean", add_image_features=add_image_features)
     database.aggregate_profiles(output_file=aggregated_file)
 
     if remote:
@@ -243,7 +246,8 @@ if __name__ == "__main__":
         help="A remote AWS directory, if set CSV files will be synced down from at the beginning and to which SQLite files will be synced up at the end of the run",
     )
     parser.add_argument(
-        "--aggregate_only",
+        "--aggregate-only",
+        dest="aggregate_only",
         action="store_true",
         default=False,
         help="Whether to perform only the aggregation of existant SQLite files and bypass previous collation steps",
@@ -258,6 +262,13 @@ if __name__ == "__main__":
         action="store_true",
         default=False,
         help="Whether or not to overwrite an sqlite that exists in the temporary directory if it already exists",
+    )
+    parser.add_argument(
+        "--add-image-features",
+        dest="add_image_features",
+        action="store_true",
+        default=True,
+        help="Whether or not to oaadd the image features to the profiles",
     )
 
     args = parser.parse_args()
@@ -274,4 +285,5 @@ if __name__ == "__main__":
         aggregate_only=args.aggregate_only,
         temp=args.temp,
         overwrite=args.overwrite,
+        add_image_features=args.add_image_features
     )
