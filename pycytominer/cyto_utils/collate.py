@@ -31,7 +31,8 @@ def collate(
     aggregate_only=False,
     temp="/tmp",
     overwrite=False,
-    add_image_features=True
+    add_image_features=True,
+    image_feature_categories=['Intensity','Granularity','Texture','ImageQuality','Count','Threshold']
 ):
     """Collate the CellProfiler-created CSVs into a single SQLite file by calling cytominer-database
 
@@ -61,6 +62,8 @@ def collate(
         Whether or not to overwrite an sqlite that exists in the temporary directory if it already exists
     add_image_features: bool, optional, default True
         Whether or not to add the image features to the profiles
+    image_feature_categories: list, optional, default ['Intensity','Granularity','Texture','ImageQuality','Count','Threshold']
+        The list of image feature groups to be used by add_image_features during aggregation
     """
 
     # Set up directories (these need to be abspaths to keep from confusing makedirs later)
@@ -198,7 +201,15 @@ def collate(
         print(f"Downloading SQLite files from {remote_backend_file} to {backend_file}")
         run_check_errors(cp_cmd)
 
-    database = SingleCells("sqlite:///" + backend_file, aggregation_operation="mean", add_image_features=add_image_features)
+    if not add_image_features:
+        image_feature_categories = None #defensive but not sure what will happen if we give a list but set to False
+
+    database = SingleCells(
+        "sqlite:///" + backend_file, 
+        aggregation_operation="mean", 
+        add_image_features=add_image_features,
+        image_feature_categories = image_feature_categories
+        )
     database.aggregate_profiles(output_file=aggregated_file)
 
     if remote:
@@ -270,6 +281,13 @@ if __name__ == "__main__":
         default=True,
         help="Whether or not to add the image features to the profiles",
     )
+    parser.add_argument(
+        "--image-feature-categories",
+        dest="image_feature_categories",
+        type=lambda s:[item for item in s.split(',')],
+        default="Intensity,Granularity,Texture,ImageQuality,Count,Threshold",
+        help='Which image feature categories should be added if adding image features to the aggregated profiles. Multiple values can be passed in if comma separated with no spaces between them'
+    )
 
     args = parser.parse_args()
 
@@ -285,5 +303,6 @@ if __name__ == "__main__":
         aggregate_only=args.aggregate_only,
         temp=args.temp,
         overwrite=args.overwrite,
-        add_image_features=args.add_image_features
+        add_image_features=args.add_image_features,
+        image_feature_categories=args.image_feature_categories
     )
